@@ -670,7 +670,7 @@ export class AppointmentsService {
   async getMasterPublicProfile(masterId: string) {
     const master = await this.userRepo.findOne({
       where: { id: masterId, isMaster: true },
-      select: ['id', 'firstName', 'lastName', 'photoUrl', 'address'],
+      select: ['id', 'firstName', 'lastName', 'photoUrl', 'address', 'bio'],
     });
     if (!master) throw new NotFoundException('Master not found');
 
@@ -703,6 +703,7 @@ export class AppointmentsService {
       lastName: master.lastName,
       photoUrl: master.photoUrl,
       address: master.address,
+      bio: (master as unknown as { bio: string | null }).bio ?? null,
       averageRating: average,
       reviewCount: count,
       reviews,

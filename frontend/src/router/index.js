@@ -139,6 +139,12 @@ const routes = [
     component: () => import('../views/MasterProfile.vue'),
     meta: { requiresAuth: true },
   },
+  {
+    path: '/admin/settings',
+    name: 'AdminMasterSettings',
+    component: () => import('../views/admin/MasterSettings.vue'),
+    meta: { requiresAuth: true, requiresMaster: true },
+  },
 ];
 
 const router = createRouter({
