@@ -6,7 +6,7 @@ import { useTelegramWebApp } from '../composables/useTelegramWebApp';
 
 const router = useRouter();
 const route = useRoute();
-const { hapticFeedback } = useTelegramWebApp();
+const { hapticFeedback, webApp } = useTelegramWebApp();
 
 const appointmentId = ref(route.query.id || '');
 const loading = ref(false);
@@ -53,10 +53,15 @@ function skipReminder() {
 }
 
 function goToAppointments() {
-  router.replace('/appointments');
+  if (webApp) {
+    webApp.close();
+  } else {
+    router.replace('/appointments');
+  }
 }
 
 onMounted(() => {
+  webApp?.expand();
   runConfetti();
   if (!appointmentId.value) {
     goToAppointments();
