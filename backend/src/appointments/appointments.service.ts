@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, In, IsNull, LessThan, Repository } from 'typeorm';
 import { User } from '../auth/entities/user.entity';
@@ -28,7 +29,13 @@ export class AppointmentsService {
     @InjectRepository(AvailabilitySlot)
     private slotRepo: Repository<AvailabilitySlot>,
     private botService: BotService,
+    private configService: ConfigService,
   ) {}
+
+  getConfig() {
+    const feePercent = this.configService.get<number>('SERVICE_FEE_PERCENT') || 5;
+    return { serviceFeePercent: feePercent };
+  }
 
   private async getMasterId(): Promise<string> {
     const master = await this.userRepo.findOne({ where: { isMaster: true } });
