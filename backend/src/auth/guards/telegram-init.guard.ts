@@ -34,7 +34,8 @@ export class TelegramInitGuard implements CanActivate {
     }
 
     try {
-      validate(initData, botToken);
+      // Reject initData older than 10 minutes to prevent replay attacks
+      validate(initData, botToken, { expiresIn: 600 });
       const parsed = parse(initData);
       request.telegramUser = parsed.user as TelegramUser;
       return true;

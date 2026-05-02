@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Patch, Body, UseGuards, Request, Param } from '@nestjs/common';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { TelegramAuthDto } from './dto/telegram-auth.dto';
 import { BroadcastMessageDto } from './dto/broadcast-message.dto';
@@ -11,7 +12,8 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('telegram')
-  @UseGuards(TelegramInitGuard)
+  @UseGuards(ThrottlerGuard, TelegramInitGuard)
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   async loginWithTelegram(
     @Body() _dto: TelegramAuthDto,
     @Request() req: { telegramUser: { id: number; first_name: string; last_name?: string; username?: string; language_code?: string; photo_url?: string } },

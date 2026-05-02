@@ -155,14 +155,6 @@ export class AppointmentsController {
     return this.appointmentsService.getRecommendations(req.user, masterId);
   }
 
-  /** Webhook called by Telegram/payment provider to confirm a payment. */
-  @Post('payment/confirm')
-  confirmPayment(
-    @Body() body: { invoiceId: string },
-  ) {
-    return this.appointmentsService.confirmPayment(body.invoiceId);
-  }
-
   /** Create a Telegram payment invoice link for an appointment. */
   @Post(':id/payment')
   createPaymentInvoice(

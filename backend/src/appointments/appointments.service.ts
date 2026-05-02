@@ -11,6 +11,7 @@ import { AvailabilitySlot } from '../crm/entities/availability-slot.entity';
 import { PortfolioPhoto } from '../crm/entities/portfolio-photo.entity';
 import { BookAppointmentDto } from '../crm/dto/book-appointment.dto';
 import { BotService } from '../bot/bot.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { getTodayInVilnius, parseDateTimeInVilnius, formatDateTimeForNotification } from '../shared/timezone.util';
 import { getGoogleMapsUrl } from '../shared/maps.util';
 
@@ -33,6 +34,7 @@ export class AppointmentsService {
     private portfolioRepo: Repository<PortfolioPhoto>,
     private botService: BotService,
     private configService: ConfigService,
+    private subscriptionsService: SubscriptionsService,
   ) {}
 
   getConfig() {
@@ -465,6 +467,11 @@ export class AppointmentsService {
 
   async book(user: User, dto: BookAppointmentDto) {
     const masterId = await this.resolveMasterId(dto.masterId);
+
+    const canBook = await this.subscriptionsService.canBook(masterId);
+    if (!canBook) {
+      throw new ForbiddenException('This master is not currently accepting new bookings');
+    }
 
     let client = await this.clientRepo.findOne({
       where: { telegramId: user.telegramId, masterId },

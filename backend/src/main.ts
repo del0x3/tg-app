@@ -11,7 +11,13 @@ async function bootstrap() {
 
   const uploadsDir = join(process.cwd(), 'uploads');
   mkdirSync(join(uploadsDir, 'portfolio'), { recursive: true });
-  app.useStaticAssets(uploadsDir, { prefix: '/uploads' });
+  app.useStaticAssets(uploadsDir, {
+    prefix: '/uploads',
+    setHeaders: (res: import('http').ServerResponse) => {
+      res.setHeader('Content-Disposition', 'attachment');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+    },
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

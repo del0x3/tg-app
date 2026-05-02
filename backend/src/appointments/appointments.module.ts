@@ -12,6 +12,7 @@ import { AppointmentFeedback } from '../crm/entities/appointment-feedback.entity
 import { PortfolioPhoto } from '../crm/entities/portfolio-photo.entity';
 import { AvailabilitySlot } from '../crm/entities/availability-slot.entity';
 import { BotModule } from '../bot/bot.module';
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { BotModule } from '../bot/bot.module';
       PortfolioPhoto,
     ]),
     BotModule,
+    SubscriptionsModule,
   ],
   controllers: [AppointmentsController],
   providers: [AppointmentsService, RemindersService, PostSessionService],

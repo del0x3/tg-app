@@ -19,7 +19,7 @@ export function useAuth() {
   const { initData, getApiUrl, isAvailable, user: tgUser } = useTelegramWebApp();
 
   const token = ref(localStorage.getItem(STORAGE_KEY) || '');
-  const user = ref(JSON.parse(localStorage.getItem(`${STORAGE_KEY}_user`) || 'null'));
+  const user = ref(null);
   const loading = ref(false);
   const error = ref(null);
 
@@ -50,7 +50,6 @@ export function useAuth() {
       token.value = data.accessToken;
       user.value = data.user;
       localStorage.setItem(STORAGE_KEY, data.accessToken);
-      localStorage.setItem(`${STORAGE_KEY}_user`, JSON.stringify(data.user));
       return data;
     } catch (err) {
       error.value = err.message;
@@ -65,7 +64,6 @@ export function useAuth() {
     user.value = null;
     error.value = null;
     localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(`${STORAGE_KEY}_user`);
   }
 
   function getAuthHeaders() {
@@ -75,7 +73,11 @@ export function useAuth() {
   }
 
   async function ensureAuth() {
-    if (token.value && !isTokenExpired(token.value)) return true;
+    if (token.value && !isTokenExpired(token.value)) {
+      // Token valid but user data not loaded yet (not cached in localStorage anymore)
+      if (!user.value) await refreshUser();
+      return true;
+    }
     if (token.value) logout(); // clear stale token
     if (isAvailable.value && initData.value) {
       return !!(await loginWithTelegram());
@@ -83,7 +85,7 @@ export function useAuth() {
     return false;
   }
 
-  /** Refresh user from backend (e.g. after isMaster changed in DB). */
+  /** Refresh user from backend (e.g. after isMaster changed in DB, or on app start). */
   async function refreshUser() {
     if (!token.value) return;
     try {
@@ -93,7 +95,6 @@ export function useAuth() {
       if (!res.ok) return;
       const data = await res.json();
       user.value = data;
-      localStorage.setItem(`${STORAGE_KEY}_user`, JSON.stringify(data));
     } catch (_) {
       // ignore
     }
