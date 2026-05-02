@@ -465,8 +465,33 @@ export class BotService implements OnModuleInit, OnModuleDestroy {
       return ctx.reply(formatCoursesMessage(courses), { parse_mode: 'HTML' });
     });
 
-    // Telegram Payments: answer pre_checkout_query immediately to confirm the order
+    // Telegram Payments: validate invoice before approving pre-checkout
     this.bot.on('pre_checkout_query', async (ctx) => {
+      const query = ctx.preCheckoutQuery;
+      const payload = query.invoice_payload;
+
+      if (!payload || !payload.startsWith('appt_')) {
+        await ctx.answerPreCheckoutQuery(false, 'Invalid invoice payload');
+        return;
+      }
+
+      const appointment = await this.appointmentRepo.findOne({
+        where: { invoiceId: payload, paymentStatus: PaymentStatus.PENDING },
+      });
+      if (!appointment) {
+        await ctx.answerPreCheckoutQuery(false, 'Appointment not found or already paid');
+        return;
+      }
+
+      // Verify that the amount matches what we issued the invoice for
+      if (appointment.totalPrice) {
+        const expectedCents = Math.round(Number(appointment.totalPrice) * 100);
+        if (Math.abs(query.total_amount - expectedCents) > 1) {
+          await ctx.answerPreCheckoutQuery(false, 'Payment amount mismatch');
+          return;
+        }
+      }
+
       await ctx.answerPreCheckoutQuery(true);
     });
 

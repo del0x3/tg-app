@@ -271,10 +271,11 @@ export class CrmController {
           cb(null, `${randomUUID()}${extname(file.originalname)}`);
         },
       }),
-      limits: { fileSize: 8 * 1024 * 1024 },
+      limits: { fileSize: 8 * 1024 * 1024, files: 1 },
       fileFilter: (_req, file, cb) => {
-        if (!file.mimetype.startsWith('image/')) {
-          cb(new BadRequestException('Only image files are allowed'), false);
+        const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+        if (!ALLOWED.has(file.mimetype)) {
+          cb(new BadRequestException('Only JPEG, PNG, WebP, or GIF images are allowed'), false);
         } else {
           cb(null, true);
         }
